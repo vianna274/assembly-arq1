@@ -27,9 +27,16 @@ layout9 	db 		' 6 : ','$'
 layout10 	db 		'>=7: ','$'
 prompt1		db		'Escreve ai: ','$'
 er_abertura db 		'Abre direito infeliz','$'
-pontos		db		'#','$'
+t1		db		'1','$'
+t2		db		'2','$'
+t3		db		'3','$'
+t4		db		'4','$'
+t5		db		'5','$'
+t6		db		'6','$'
+t7		db		'7','$'
+
 fimlinha 	db  	CR,LF,'$'
-suposto_arquivo db		80 (?),'$'
+suposto_arquivo db	255 (?),'$'
 arq_error	dw		0
 tanks		dw		?
 tanks1		dw		?
@@ -40,7 +47,7 @@ aux_tam 	dw		0
 aux_pal		dw		0
 aux_print	db		0
 handler		dw		(?),'$'
-buffer_arq	dw		80 (?),'$'
+buffer_arq	dw		255 (?),'$'
 
 dados    ends
 ; definicao do segmento de pilha do programa
@@ -159,7 +166,7 @@ le_arquivo PROC NEAR
 	mov si,ax
 	mov ah,3fh
 	mov bx,handler
-	mov	cx,80		; le 80 caracteres
+	mov	cx,255		; le 80 caracteres
 	lea dx,buffer_arq
 	int	21h
 
@@ -175,7 +182,7 @@ desenha_stati proc near
 		desenha_um_in:
 			mov mlinha,18
 			call movecursor
-			lea dx,pontos
+			lea dx,t1
 			call escreve
 			inc mcolum
 			loop desenha_um_in
@@ -187,7 +194,7 @@ desenha_stati proc near
 		desenha_dois_in:
 			mov mlinha,19
 			call movecursor
-			lea dx,pontos
+			lea dx,t2
 			call escreve
 			inc mcolum
 			loop desenha_dois_in
@@ -199,7 +206,7 @@ desenha_stati proc near
 		desenha_tres_in:
 			mov mlinha,20
 			call movecursor
-			lea dx,pontos
+			lea dx,t3
 			call escreve
 			inc mcolum
 			loop desenha_tres_in
@@ -211,7 +218,7 @@ desenha_stati proc near
 		desenha_quatro_in:
 			mov mlinha,21
 			call movecursor
-			lea dx,pontos
+			lea dx,t4
 			call escreve
 			inc mcolum
 			loop desenha_quatro_in
@@ -223,7 +230,7 @@ desenha_stati proc near
 		desenha_cinco_in:
 			mov mlinha,22
 			call movecursor
-			lea dx,pontos
+			lea dx,t5
 			call escreve
 			inc mcolum
 			loop desenha_cinco_in
@@ -235,7 +242,7 @@ desenha_stati proc near
 		desenha_seis_in:
 			mov mlinha,23
 			call movecursor
-			lea dx,pontos
+			lea dx,t6
 			call escreve
 			inc mcolum
 			loop desenha_seis_in
@@ -247,7 +254,7 @@ desenha_stati proc near
 		desenha_sete_in:
 			mov mlinha,24
 			call movecursor
-			lea dx,pontos
+			lea dx,t7
 			call escreve
 			inc mcolum
 			loop desenha_sete_in
@@ -264,14 +271,20 @@ conta_palavras proc near
 	inicio_contagem:
 		mov cl,[bx]
 		CMP cl,32		; compara com espaço, se for acabou a palavra 
-		je acabou_palavra
+		je 	acabou_palavra
 		CMP	cl,'$'
-		je final_contagem_ponte
+		je 	final_contagem_ponte
+		CMP cl,CR
+		je	acabou_palavra
+		CMP	cl,LF
+		JE	acabou_palavra
 		inc bx
 		inc aux_tam
 		jmp inicio_contagem
 	acabou_palavra:
 		inc bx
+		CMP aux_tam,0
+		je	conta_palavras_in
 		CMP aux_tam,1
 		je	tam1
 		CMP aux_tam,2
