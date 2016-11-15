@@ -12,11 +12,22 @@ layout3 	db 		'Histograma com tamanho das palavras (representa no maximo 75 de c
 layout4 	db 		' 1 : ','$'
 layout5 	db 		' 2 : ','$'
 layout6 	db 		' 3 : ','$'
-gambiarra	db		'                                                                                ','$'
 more		db		'Digite "s" para continuar, ou "n" para encerrar este belo trabalho','$'
 more2		db		'		  		Escolha com sabedoria','$'
 layout11	db		'O arquivo              contem       caracteres,      palavras e     linhas.','$'
 asterisco	db		'*','$'
+linha_1		db		80 dup (?),'$'
+linha_2		db		80 dup (?),'$'
+linha_3		db		80 dup (?),'$'
+linha_4		db		80 dup (?),'$'
+linha_5		db		80 dup (?),'$'
+linha_6		db		80 dup (?),'$'
+linha_7		db		80 dup (?),'$'
+linha_8		db		80 dup (?),'$'
+linha_9		db		80 dup (?),'$'
+linha_10	db		80 dup (?),'$'
+linha_11	db		80 dup (?),'$'
+linha_12	db		80 dup (?),'$'
 tam_1		db		0
 tam_2		db		0
 tam_3		db		0
@@ -43,11 +54,6 @@ t7		db		'+','$'
 fimlinha 	db  	CR,LF,'$'
 suposto_arquivo db	64 (?),'$'
 arq_error	dw		0
-tanks		dw		?
-tanks1		dw		?
-tanks2		dw		?
-tanks3		dw		?
-tanks4		dw		?
 aux_tam 	dw		0
 aux_pal		dw		0
 aux_print	db		0
@@ -130,68 +136,51 @@ limpa_buffer:		; carrega o tamanho do buffer e o endereço
 	dec cx
 	inc	si
 	cmp cx,0
-	je	final_limpa
+	je	limpando_as_linhas
 	jmp limpa_buffer_in
+limpando_as_linhas:
+	lea	ax,linha_1
+	call limpa_linhas
+	lea	ax,linha_2
+	call limpa_linhas
+	lea	ax,linha_3
+	call limpa_linhas
+	lea	ax,linha_4
+	call limpa_linhas
+	lea	ax,linha_5
+	call limpa_linhas
+	lea	ax,linha_6
+	call limpa_linhas
+	lea	ax,linha_7
+	call limpa_linhas
+	lea	ax,linha_8
+	call limpa_linhas
+	lea	ax,linha_9
+	call limpa_linhas
+	lea	ax,linha_10
+	call limpa_linhas
+	lea	ax,linha_11
+	call limpa_linhas
+	lea	ax,linha_12
+	call limpa_linhas
 final_limpa:
 	ret
 ENDP
 ;################################################
-gambiarra_ PROC NEAR
-	mov mcolum,0
-	mov mlinha,15
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,16
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,17
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,18
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,19
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,20
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,21
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,22
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,23
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	mov mcolum,0
-	mov mlinha,24
-	call movecursor
-	lea dx,gambiarra
-	call escreve
-	
-	ret
-endp
-
-;################################################	
+limpa_linhas	PROC NEAR
+	mov	cx,80
+	mov si,ax
+	limpa_linhas_in:
+		mov	[si],0
+		dec	cx
+		inc	si
+		cmp	cx,0
+		je	final_limpa_linhas
+		jmp limpa_linhas_in
+final_limpa_linhas:
+	ret	
+ENDP
+;################################################
 clrscr proc near
     mov ax,0003h
     int 10h 
@@ -287,11 +276,11 @@ le_arquivo PROC NEAR
 	mov	cx,32000		; le 32000 caracteres
 	lea dx,buffer_arq
 	int	21h
-	mov mlinha,2
-	mov mcolum,0
-	call movecursor		; escreve o arquivo aonde devia escrever
-	lea dx,buffer_arq
-	call escreve
+;	mov mlinha,2
+;	mov mcolum,0
+;	call movecursor		; escreve o arquivo aonde devia escrever
+;	lea dx,buffer_arq
+;	call escreve
 	
 	ret
 ENDP
@@ -648,6 +637,253 @@ layout_		proc near	; Desenha o layout bonitinho
 		call escreve
 	ret
 endp
+
+;################# GAMBIARRA CUIDADO !!!!!!!!!!!!!!!!!!!!!!!!!!! PERIGO TRAUMATIZAR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+gambiarra_ PROC NEAR
+	lea	si,buffer_arq
+	linha1:
+		lea	di,linha_1
+		linha1_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha2
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha1_in
+			
+	linha2:
+		inc si
+		inc	si
+		lea	di,linha_2
+		linha2_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha3
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha2_in
+	
+	linha3:
+		inc si
+		inc	si
+		lea	di,linha_3
+		linha3_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha4
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha3_in
+
+	linha4:
+		inc si
+		inc	si
+		lea	di,linha_4
+		linha4_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha5
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha4_in
+			
+final_gambiarra_ponte:
+	jmp	final_gambiarra
+	
+	linha5:
+		inc si
+		inc	si
+		lea	di,linha_5
+		linha5_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha6
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha5_in
+			
+	linha6:
+		inc si
+		inc	si
+		lea	di,linha_6
+		linha6_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha7
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha6_in
+			
+	linha7:
+		inc si
+		inc	si
+		lea	di,linha_7
+		linha7_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha8
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha7_in
+			
+	linha8:
+		inc si
+		inc	si
+		lea	di,linha_8
+		linha8_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha9
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha8_in
+	linha9:
+		inc si
+		inc	si
+		lea	di,linha_9
+		linha9_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha10
+			cmp	dl,0
+			je	final_gambiarra_ponte
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha9_in
+			
+	linha10:
+		inc si
+		inc	si
+		lea	di,linha_10
+		linha10_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha11
+			cmp	dl,0
+			je	final_gambiarra
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha10_in
+			
+	linha11:
+		inc si
+		inc	si
+		lea	di,linha_11
+		linha11_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	linha12
+			cmp	dl,0
+			je	final_gambiarra
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha11_in
+			
+	linha12:
+		inc si
+		inc	si
+		lea	di,linha_12
+		linha12_in:
+			mov	dl,[si]
+			cmp dl,CR
+			je	final_gambiarra
+			cmp	dl,0
+			je	final_gambiarra
+			mov	[di],dl
+			inc	si
+			inc di
+			jmp linha12_in
+final_gambiarra:
+	mov 	mlinha,2
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_1
+	call	escreve
+	mov 	mlinha,3
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_2
+	call	escreve
+	mov 	mlinha,4
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_3
+	call	escreve
+	mov 	mlinha,5
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_4
+	call	escreve
+	mov 	mlinha,6
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_5
+	call	escreve
+	mov 	mlinha,7
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_6
+	call	escreve
+	mov 	mlinha,8
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_7
+	call	escreve
+	mov 	mlinha,9
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_8
+	call	escreve
+	mov 	mlinha,10
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_9
+	call	escreve
+	mov 	mlinha,11
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_10
+	call	escreve
+	mov 	mlinha,12
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_11
+	call	escreve
+	mov 	mlinha,13
+	mov 	mcolum,0
+	call 	movecursor
+	lea		dx,linha_12
+	call	escreve
+	ret
+endp
+
 ;################################################
 fim:
 	call	clrscr		; deixa bonitinho a saida do arquivo
