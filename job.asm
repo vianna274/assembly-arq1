@@ -14,8 +14,17 @@ layout5 	db 		' 2 : ','$'
 layout6 	db 		' 3 : ','$'
 more		db		'Digite "s" para continuar, ou "n" para encerrar este belo trabalho','$'
 more2		db		'		  		Escolha com sabedoria','$'
-layout11	db		'O arquivo              contem       caracteres,      palavras e     linhas.','$'
+layout11	db		'O arquivo ','$'
+layout12	db		' contem ','$'
+layout13	db		'caracteres, ','$'
+layout14	db		'palavras e ','$'
+layout15	db		'linhas.','$'
+numpalavras	dw		0
 asterisco	db		'*','$'
+convertendo	dw		0				
+numcaracteres dw	0
+numlinhas	dw		0
+convertido  dw	    6  dup (?)
 linha_1		db		80 dup (?),'$'
 linha_2		db		80 dup (?),'$'
 linha_3		db		80 dup (?),'$'
@@ -28,6 +37,7 @@ linha_9		db		80 dup (?),'$'
 linha_10	db		80 dup (?),'$'
 linha_11	db		80 dup (?),'$'
 linha_12	db		80 dup (?),'$'
+tamlimpeza	dw		0
 tam_1		db		0
 tam_2		db		0
 tam_3		db		0
@@ -41,8 +51,8 @@ layout7 	db 		' 4 : ','$'
 layout8 	db 		' 5 : ','$'
 layout9 	db 		' 6 : ','$'
 layout10 	db 		'>=7: ','$'
-prompt1		db		'Escreve ai: ','$'
-er_abertura db 		'Arquivo nao encontrada hehe','$'
+prompt1		db		'Digite o nome do arquivo:','$'
+er_abertura db 		'ERROR 590543: FILE NOT FOUND, PRESS ENTER TO TRY AGAIN','$'
 t1		db		'1','$'
 t2		db		'2','$'
 t3		db		'3','$'
@@ -52,13 +62,13 @@ t6		db		'6','$'
 t7		db		'+','$'
 
 fimlinha 	db  	CR,LF,'$'
-suposto_arquivo db	64 (?),'$'
+suposto_arquivo db	15 dup (?),'$'
 arq_error	dw		0
 aux_tam 	dw		0
 aux_pal		dw		0
 aux_print	db		0
 handler		dw		(?),'$'
-buffer_arq	dw		32000 dup (?),fimlinha
+buffer_arq	dw		30000 dup (?),fimlinha
 
 dados    ends
 ; definicao do segmento de pilha do programa
@@ -86,8 +96,8 @@ loop_escreve:
 	je 		loop_inicio
 	call 	le_arquivo		; le o conteudo do arquivo, bota no buffer_arq e já mostra na tela
 	call 	gambiarra_		; limpa a parte inutil do texto na tela
-	call 	layout_			; mostra o layout
 	call 	conta_palavras	; conta as palavras
+	call 	layout_			; mostra o layout
 	call 	desenha_stati	; faz o histograma
 	call 	fechar_arquivo
 	call	espera_enter	; espera o enter
@@ -128,6 +138,11 @@ limpa_variaveis	PROC NEAR
 	mov	aux_pal,0
 	mov	aux_print,0
 	mov	aux_tam,0
+	mov numcaracteres,0
+	mov numlinhas,0
+	mov numpalavras,0
+	mov convertendo,0
+	mov tamlimpeza,0
 limpa_buffer:		; carrega o tamanho do buffer e o endereço
 	MOV	cx,32000	; faz um for limpando tudo :D
 	lea	si,buffer_arq
@@ -139,36 +154,52 @@ limpa_buffer:		; carrega o tamanho do buffer e o endereço
 	je	limpando_as_linhas
 	jmp limpa_buffer_in
 limpando_as_linhas:
+	mov tamlimpeza,80
 	lea	ax,linha_1
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_2
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_3
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_4
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_5
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_6
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_7
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_8
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_9
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_10
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_11
 	call limpa_linhas
+	mov tamlimpeza,80
 	lea	ax,linha_12
+	call limpa_linhas
+; LIMPA OUTROS ARRAYS TAMBÉM
+	lea ax,convertido
+	mov	tamlimpeza,5
 	call limpa_linhas
 final_limpa:
 	ret
 ENDP
 ;################################################
 limpa_linhas	PROC NEAR
-	mov	cx,80
+	mov	cx,tamlimpeza
 	mov si,ax
 	limpa_linhas_in:
 		mov	[si],0
@@ -201,8 +232,6 @@ movecursor proc near
 movecursor ENDP
 ;################################################
 Escreve PROC	NEAR
-
-
 ; ESCREVE O QUE ESTIVER EM DX
 		mov		ah,9
 		INT 	21H     ; Escreve mensagem
@@ -212,15 +241,53 @@ ESCREVE ENDP
 ;################################################
 LeString PROC    NEAR      
     mov		cx, si
-Read:
+Ler:
     mov     ah, 01H
     int     21H                 ; Le até ser "13" e devolve no buffer
     cmp     al, 13              ;
     je      Done                
+	cmp		al, 08
+	je		backspace
+	cmp		al, 46
+	je		falseloop
     mov     [si], al           
     inc     si                  
-    jmp     Read                
+    jmp     Ler     
+backspace:
+	mov ah, 02h         
+	mov dl, 20h         ; Bota um espaço em branco na tela
+	int 21h             
+	mov dl, 08h         ; volta pq o cursor avançou novamente
+	int 21h             
+	dec si
+	mov [si],0
+	jmp	Ler
+falseloop:
+    mov     ah, 01H
+    int     21H                 ; Le até ser "13" e devolve no buffer
+    cmp     al, 13              ;
+    je      Done                
+	cmp		al, 08
+	je		falsebackspace
+	cmp		al, 46
+	jmp falseloop
+	
+falsebackspace:
+	mov ah, 02h         
+	mov dl, 20h         ; Bota um espaço em branco na tela
+	int 21h             
+	mov dl, 08h         ; volta pq o cursor avançou novamente
+	int 21h             
+	jmp	falseloop
 Done:            
+	mov 	[si],'.'
+	inc		si
+	mov 	[si],'t'
+	inc		si
+	mov 	[si],'x'
+	inc		si
+	mov 	[si],'t'
+	inc		si
     mov     [si], '$'           ; Bota $ como terminação
 	mov		ax,	si
 	sub		ax, cx
@@ -231,10 +298,37 @@ LeString ENDP
 insere_arquivo PROC NEAR
 	LEA		dx,prompt1
 	call	escreve
-    lea     SI, suposto_arquivo             ; Pega uma string escrita
-    call    LeString          			; Le
+    lea     SI, suposto_arquivo             ; Load no endereço da string a ser escrita
+    call    LeString          				; Le
 	
 	ret
+ENDP
+;################################################
+converte_asci PROC NEAR
+	mov ax, convertendo     ; numero a ser convertido
+    mov cx, 10         		; divisor
+    xor bx, bx         		; conta os digitos
+
+divide:
+    xor dx, dx        	
+    div cx             	; dx = resto
+    push dx             ; da push no dx para inverter a ordem
+    inc bx              
+    test ax, ax       	; Se ax for 0 acaba
+    jnz divide          
+
+ 
+    mov cx, bx          ; da pop p terminar de inverte e carrega no buffer escolhido
+    lea si, convertido   ; DS:SI points to string buffer
+proximo:
+    pop ax
+    add al, '0'         ; converte p ascii
+    mov [si], al        ; escreve no buffer
+    inc si
+    loop proximo
+	inc si
+	mov [si],'$'
+ret
 ENDP
 ;################################################
 espera_enter PROC NEAR
@@ -276,12 +370,7 @@ le_arquivo PROC NEAR
 	mov	cx,32000		; le 32000 caracteres
 	lea dx,buffer_arq
 	int	21h
-;	mov mlinha,2
-;	mov mcolum,0
-;	call movecursor		; escreve o arquivo aonde devia escrever
-;	lea dx,buffer_arq
-;	call escreve
-	
+	MOV numcaracteres,AX
 	ret
 ENDP
 ;################################################
@@ -441,7 +530,7 @@ desenha_stati proc near
 					CMP	cl,0
 					je	final_desenho
 					mov mlinha,24
-					CMP mcolum,80
+					CMP mcolum,79
 					je	final_desenho_asterisco
 					call movecursor
 					lea dx,t7
@@ -451,8 +540,8 @@ desenha_stati proc near
 					jmp desenha_sete_in
 					
 	final_desenho_asterisco:
-		mov	mlinha,23
-		mov mcolum,79				; WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+		mov	mlinha,24
+		mov mcolum,78				; WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 		call movecursor
 		lea dx,asterisco
 		call escreve
@@ -474,14 +563,16 @@ conta_palavras proc near
 		CMP cl,9
 		je acabou_palavra
 		CMP	cl,0		; 0 = nada
-		je 	final_contagem_extra
+		je 	final_contagem_extra_ponte
 		CMP cl,CR
-		je	acabou_palavra
+		je	acabou_palavra_linha_nova
 		CMP	cl,LF
 		JE	acabou_palavra
 		inc bx
 		inc aux_tam
 		jmp inicio_contagem
+			acabou_palavra_linha_nova:
+				inc numlinhas
 			acabou_palavra:
 				inc bx
 				CMP aux_tam,0
@@ -501,26 +592,35 @@ conta_palavras proc near
 				jmp tam7
 				tam1:
 				inc	tam_1
+				inc numpalavras
 				jmp conta_palavras_in
 			tam2:
 				INC	tam_2
+				inc numpalavras
 				jmp conta_palavras_in
 			tam3:
 				INC	tam_3
+				inc numpalavras
 				jmp conta_palavras_in
 			tam4:
 				INC	tam_4
+				inc numpalavras
 				jmp conta_palavras_in
 final_contagem_ponte:
 	jmp	final_contagem
+final_contagem_extra_ponte:
+	jmp	final_contagem_extra
 			tam5:
 				INC	tam_5
+				inc numpalavras
 				jmp conta_palavras_in
 			tam6:
 				INC	tam_6
+				inc numpalavras
 				jmp conta_palavras_in
 			tam7:
 				INC	tam_7
+				inc numpalavras
 				jmp conta_palavras_in
 						final_contagem_extra:
 							CMP aux_tam,0
@@ -540,24 +640,31 @@ final_contagem_ponte:
 							jmp tam7_fim
 						tam1_fim:
 							inc	tam_1
+							inc numpalavras
 							ret
 						tam2_fim:
 							INC	tam_2
+							inc numpalavras
 							ret
 						tam3_fim:
 							INC	tam_3
+							inc numpalavras
 							ret
 						tam4_fim:
 							INC	tam_4
+							inc numpalavras
 							ret
 						tam5_fim:
 							INC	tam_5
+							inc numpalavras
 							ret
 						tam6_fim:
 							INC	tam_6
+							inc numpalavras
 							ret
 						tam7_fim:
 							INC	tam_7
+							inc numpalavras
 							ret
 final_contagem:		
 	ret
@@ -569,7 +676,7 @@ layout_		proc near	; Desenha o layout bonitinho
 		call movecursor
 		LEA dx,layout1
 		call escreve
-		
+
 		MOV mlinha,1
 		MOV mcolum,0
 		call movecursor
@@ -580,12 +687,6 @@ layout_		proc near	; Desenha o layout bonitinho
 		MOV mcolum,0
 		call movecursor
 		LEA dx,layout2
-		call escreve
-		
-		MOV mlinha,15
-		MOV mcolum,0
-		call movecursor
-		LEA dx,layout11
 		call escreve
 		
 		MOV mlinha,17
@@ -617,7 +718,7 @@ layout_		proc near	; Desenha o layout bonitinho
 		call movecursor
 		LEA dx,layout7
 		call escreve
-		
+				
 		MOV mlinha,22
 		MOV mcolum,0
 		call movecursor
@@ -634,6 +735,64 @@ layout_		proc near	; Desenha o layout bonitinho
 		MOV mcolum,0
 		call movecursor
 		LEA dx,layout10
+		call escreve
+		
+		MOV mlinha,15
+		MOV mcolum,0
+		call movecursor
+		LEA dx,layout11
+		call escreve
+		
+		lea	dx,suposto_arquivo
+		call escreve
+		
+		lea	dx,layout12
+		call escreve
+
+		
+		mov ax,numcaracteres
+		mov convertendo,ax
+		call converte_asci
+		lea	dx,convertido
+		call escreve
+		
+		lea ax,convertido
+		mov	tamlimpeza,5
+		call limpa_linhas
+		
+		;mov mcolum,36
+	;	call movecursor
+		lea	dx,layout13
+		call escreve
+		
+		mov ax,numpalavras
+		mov convertendo,ax
+		call converte_asci
+		lea	dx,convertido
+		call escreve
+		
+		lea ax,convertido
+		mov	tamlimpeza,5
+		call limpa_linhas
+		
+		;mov mcolum,54
+	;	call movecursor
+		lea	dx,layout14
+		call escreve
+		
+		mov ax,numlinhas
+		mov convertendo,ax
+		call converte_asci
+		lea	dx,convertido
+		call escreve
+		
+		lea ax,convertido
+		mov	tamlimpeza,5
+		call limpa_linhas
+		
+	;	mov mcolum,69
+	;	call movecursor
+		lea	dx,layout15
 		call escreve
 	ret
 endp
