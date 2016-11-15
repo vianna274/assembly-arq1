@@ -68,7 +68,7 @@ aux_tam 	dw		0
 aux_pal		dw		0
 aux_print	db		0
 handler		dw		(?),'$'
-buffer_arq	dw		30000 dup (?),fimlinha
+buffer_arq	dw		32000 dup (?),fimlinha
 
 dados    ends
 ; definicao do segmento de pilha do programa
