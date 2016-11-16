@@ -205,8 +205,6 @@ Ler:
     je      Done                
 	cmp		al, 08
 	je		backspace
-	cmp		al, 46
-	je		falseloop
     mov     [si], al           
     inc     si                  
     jmp     Ler     
@@ -219,45 +217,46 @@ backspace:
 	dec si
 	mov [si],0
 	jmp	Ler
-falseloop:
-    mov     ah, 01H
-    int     21H                 ; Le até ser "13" e devolve no buffer
-    cmp     al, 13              ;
-    je      Done                
-	cmp		al, 08
-	je		falsebackspace
-	cmp		al, 46
-	jmp falseloop
-	
-falsebackspace:
-	mov ah, 02h         
-	mov dl, 20h         ; Bota um espaço em branco na tela
-	int 21h             
-	mov dl, 08h         ; volta pq o cursor avançou novamente
-	int 21h             
-	jmp	falseloop
 Done:            
-	mov 	[si],'.'
-	inc		si
-	mov 	[si],'t'
-	inc		si
-	mov 	[si],'x'
-	inc		si
-	mov 	[si],'t'
-	inc		si
-    mov     [si], '$'           ; Bota $ como terminação
+	lea		si,suposto_arquivo
+	dec		si
+	loop_ponto:
+		inc 	si
+		mov		cx,[si]
+		cmp		cl,'.'
+		je		digitou_ponto
+		cmp		cx,'t'
+		je		digitou_ponto
+		cmp		cx,	0
+		jne		loop_ponto
+		mov 	[si],'.'
+		inc		si
+		mov 	[si],'t'
+		inc		si
+		mov 	[si],'x'
+		inc		si
+		mov 	[si],'t'
+		inc		si
+		mov     [si], '$'           ; Bota $ como terminação
+digitou_ponto:
 	mov		ax,	si
-	sub		ax, cx
-	
+	sub		ax, cx	
     ret      
 LeString ENDP
 ;################################################
 insere_arquivo PROC NEAR
+	lea ax,suposto_arquivo
+	mov	tamlimpeza,36
+	call limpa_linhas
 	LEA		dx,prompt1
 	call	escreve
     lea     SI, suposto_arquivo             ; Load no endereço da string a ser escrita
     call    LeString          				; Le
-	
+	mov		mlinha,5
+	mov		mcolum,10
+	call movecursor
+	lea		dx,suposto_arquivo
+	call	escreve
 	ret
 ENDP
 ;################################################
