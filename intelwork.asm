@@ -5,8 +5,8 @@ LF       EQU    0AH ; constante - codigo ASCII do caractere "line feed"
 BACK	 EQU	08H ; constante - BACKSPACE
 
 ; definicao do segmento de dados do programa
-dados    segment   ;'======= TRUMP FTW ============== TRUMP FTW ============== TRUMP FTW ============'
-layout1 	db 		'======== THE CHORO ES LIBRE ======= PLIM PLIM ========= IM TRYING SO HARD ======','$'
+dados    segment  
+layout1 	db 		'============ HEXADECIMAL HAS TO DIIIIIIIE ft.  HEXA SUCKS XoXo =================','$'
 layout2 	db 		'================================================================================','$'
 layout3 	db 		'Histograma com tamanho das palavras (representa no maximo 75 de cada tamanho)','$'
 layout4 	db 		' 1 : ','$'
@@ -25,18 +25,8 @@ convertendo	dw		0
 numcaracteres dw	0
 numlinhas	dw		0
 convertido  dw	    6  dup (?)
-linha_1		db		80 dup (?),'$'
-linha_2		db		80 dup (?),'$'
-linha_3		db		80 dup (?),'$'
-linha_4		db		80 dup (?),'$'
-linha_5		db		80 dup (?),'$'
-linha_6		db		80 dup (?),'$'
-linha_7		db		80 dup (?),'$'
-linha_8		db		80 dup (?),'$'
-linha_9		db		80 dup (?),'$'
-linha_10	db		80 dup (?),'$'
-linha_11	db		80 dup (?),'$'
-linha_12	db		80 dup (?),'$'
+linhas_escritas		db		80 dup (?),'$'
+variacao	dw		0
 tamlimpeza	dw		0
 tam_1		db		0
 tam_2		db		0
@@ -60,9 +50,8 @@ t4		db		'4','$'
 t5		db		'5','$'
 t6		db		'6','$'
 t7		db		'+','$'
-
 fimlinha 	db  	CR,LF,'$'
-suposto_arquivo db	15 dup (?),'$'
+suposto_arquivo db	36 dup (?),'$'
 arq_error	dw		0
 aux_tam 	dw		0
 aux_pal		dw		0
@@ -95,7 +84,7 @@ loop_escreve:
 	cmp		arq_error,0
 	je 		loop_inicio
 	call 	le_arquivo		; le o conteudo do arquivo, bota no buffer_arq e já mostra na tela
-	call 	gambiarra_		; limpa a parte inutil do texto na tela
+	call 	escreve_12_linhas	; escreve 12 linhas
 	call 	conta_palavras	; conta as palavras
 	call 	layout_			; mostra o layout
 	call 	desenha_stati	; faz o histograma
@@ -144,7 +133,7 @@ limpa_variaveis	PROC NEAR
 	mov convertendo,0
 	mov tamlimpeza,0
 limpa_buffer:		; carrega o tamanho do buffer e o endereço
-	MOV	cx,32000	; faz um for limpando tudo :D
+	MOV	cx,32768	; faz um for limpando tudo :D
 	lea	si,buffer_arq
 	limpa_buffer_in:
 	mov	[si],0
@@ -155,41 +144,9 @@ limpa_buffer:		; carrega o tamanho do buffer e o endereço
 	jmp limpa_buffer_in
 limpando_as_linhas:
 	mov tamlimpeza,80
-	lea	ax,linha_1
+	lea	ax,linhas_escritas
 	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_2
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_3
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_4
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_5
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_6
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_7
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_8
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_9
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_10
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_11
-	call limpa_linhas
-	mov tamlimpeza,80
-	lea	ax,linha_12
-	call limpa_linhas
+
 ; LIMPA OUTROS ARRAYS TAMBÉM
 	lea ax,convertido
 	mov	tamlimpeza,5
@@ -530,7 +487,7 @@ desenha_stati proc near
 					CMP	cl,0
 					je	final_desenho
 					mov mlinha,24
-					CMP mcolum,79
+					CMP mcolum,80
 					je	final_desenho_asterisco
 					call movecursor
 					lea dx,t7
@@ -540,15 +497,25 @@ desenha_stati proc near
 					jmp desenha_sete_in
 					
 	final_desenho_asterisco:
-		mov	mlinha,24
-		mov mcolum,78				; WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+		mov	mlinha,23
+		mov mcolum,79				
 		call movecursor
 		lea dx,asterisco
 		call escreve
-		mov mlinha,0
-		mov mcolum,0
-		call movecursor
+		
+		MOV AH,7
+		MOV AL,1
+		MOV BH,07h
+		MOV CH,0
+		MOV CL,0
+		MOV DH,24
+		MOV DL,79
+		INT 10H
 	final_desenho:
+	call layout_
+	mov mlinha,0
+	mov mcolum,0
+	call movecursor
 		ret
 ENDP
 ;################################################
@@ -760,8 +727,6 @@ layout_		proc near	; Desenha o layout bonitinho
 		mov	tamlimpeza,5
 		call limpa_linhas
 		
-		;mov mcolum,36
-	;	call movecursor
 		lea	dx,layout13
 		call escreve
 		
@@ -775,8 +740,6 @@ layout_		proc near	; Desenha o layout bonitinho
 		mov	tamlimpeza,5
 		call limpa_linhas
 		
-		;mov mcolum,54
-	;	call movecursor
 		lea	dx,layout14
 		call escreve
 		
@@ -790,255 +753,122 @@ layout_		proc near	; Desenha o layout bonitinho
 		mov	tamlimpeza,5
 		call limpa_linhas
 		
-	;	mov mcolum,69
-	;	call movecursor
 		lea	dx,layout15
 		call escreve
 	ret
 endp
 
 ;################# GAMBIARRA CUIDADO !!!!!!!!!!!!!!!!!!!!!!!!!!! PERIGO TRAUMATIZAR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-gambiarra_ PROC NEAR
+le_proxima_linha PROC NEAR
+	mov tamlimpeza,80
+	lea	ax,linhas_escritas
+	call limpa_linhas
 	lea	si,buffer_arq
-	linha1:
-		lea	di,linha_1
-		linha1_in:
+	add si,variacao
+	linha_any:
+		lea	di,linhas_escritas
+		linha_in:
 			mov	dl,[si]
 			cmp dl,CR
-			je	linha2
+			je	final_linha_cr
 			cmp	dl,0
-			je	final_gambiarra_ponte
+			je	final_linha_end
 			mov	[di],dl
 			inc	si
 			inc di
-			jmp linha1_in
-			
-	linha2:
-		inc si
-		inc	si
-		lea	di,linha_2
-		linha2_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha3
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha2_in
-	
-	linha3:
-		inc si
-		inc	si
-		lea	di,linha_3
-		linha3_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha4
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha3_in
-
-	linha4:
-		inc si
-		inc	si
-		lea	di,linha_4
-		linha4_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha5
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha4_in
-			
-final_gambiarra_ponte:
-	jmp	final_gambiarra
-	
-	linha5:
-		inc si
-		inc	si
-		lea	di,linha_5
-		linha5_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha6
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha5_in
-			
-	linha6:
-		inc si
-		inc	si
-		lea	di,linha_6
-		linha6_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha7
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha6_in
-			
-	linha7:
-		inc si
-		inc	si
-		lea	di,linha_7
-		linha7_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha8
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha7_in
-			
-	linha8:
-		inc si
-		inc	si
-		lea	di,linha_8
-		linha8_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha9
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha8_in
-	linha9:
-		inc si
-		inc	si
-		lea	di,linha_9
-		linha9_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha10
-			cmp	dl,0
-			je	final_gambiarra_ponte
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha9_in
-			
-	linha10:
-		inc si
-		inc	si
-		lea	di,linha_10
-		linha10_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha11
-			cmp	dl,0
-			je	final_gambiarra
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha10_in
-			
-	linha11:
-		inc si
-		inc	si
-		lea	di,linha_11
-		linha11_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	linha12
-			cmp	dl,0
-			je	final_gambiarra
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha11_in
-			
-	linha12:
-		inc si
-		inc	si
-		lea	di,linha_12
-		linha12_in:
-			mov	dl,[si]
-			cmp dl,CR
-			je	final_gambiarra
-			cmp	dl,0
-			je	final_gambiarra
-			mov	[di],dl
-			inc	si
-			inc di
-			jmp linha12_in
-final_gambiarra:
+			inc variacao
+			jmp linha_in
+		final_linha_cr:
+		inc variacao
+		inc variacao
+		final_linha_end:
+			ret
+	ENDP
+;###################################################
+escreve_12_linhas PROC NEAR
+	mov		variacao,0
+	call	le_proxima_linha
 	mov 	mlinha,2
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_1
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,3
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_2
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,4
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_3
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,5
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_4
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,6
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_5
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,7
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_6
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,8
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_7
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,9
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_8
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,10
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_9
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,11
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_10
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,12
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_11
+	lea		dx,linhas_escritas
 	call	escreve
+	
+	call	le_proxima_linha
 	mov 	mlinha,13
 	mov 	mcolum,0
 	call 	movecursor
-	lea		dx,linha_12
+	lea		dx,linhas_escritas
 	call	escreve
 	ret
 endp
