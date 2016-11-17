@@ -6,7 +6,7 @@ BACK	 EQU	08H ; constante - BACKSPACE
 
 ; definicao do segmento de dados do programa
 dados    segment  
-layout1 	db 		'============ HEXADECIMAL HAS TO DIIIIIIIE ft.  HEXA SUCKS XoXo =================','$'
+layout1 	db 		'============ PRAZER, EU SOU SEU AMIGUINHO INTEL LETS ASSEMBLIAR ================','$'
 layout2 	db 		'================================================================================','$'
 layout3 	db 		'Histograma com tamanho das palavras (representa no maximo 75 de cada tamanho)','$'
 layout4 	db 		' 1 : ','$'
@@ -575,6 +575,7 @@ conta_palavras proc near
 final_contagem_ponte:
 	jmp	final_contagem
 final_contagem_extra_ponte:
+	inc numlinhas
 	jmp	final_contagem_extra
 			tam5:
 				INC	tam_5
