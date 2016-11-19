@@ -6,7 +6,7 @@ BACK	 EQU	08H ; constante - BACKSPACE
 
 ; definicao do segmento de dados do programa
 dados    segment  
-layout1 	db 		'============ PRAZER, EU SOU SEU AMIGUINHO INTEL LETS ASSEMBLIAR ================','$'
+layout1 	db 		'============ HEXADECIMAL HAS TO DIIIIIIIE ft.  HEXA SUCKS XoXo =================','$'
 layout2 	db 		'================================================================================','$'
 layout3 	db 		'Histograma com tamanho das palavras (representa no maximo 75 de cada tamanho)','$'
 layout4 	db 		' 1 : ','$'
@@ -58,6 +58,7 @@ aux_pal		dw		0
 aux_print	db		0
 handler		dw		(?),'$'
 buffer_arq	dw		32000 dup (?),fimlinha
+zero		dw		0
 
 dados    ends
 ; definicao do segmento de pilha do programa
@@ -217,18 +218,18 @@ backspace:
 	dec si
 	mov [si],0
 	jmp	Ler
-Done:            
+Done:      
+	mov  [si],'$'
 	lea		si,suposto_arquivo
-	dec		si
-	loop_ponto:
+	jmp		loop_ponto
+	incrementacao:
 		inc 	si
+	loop_ponto:
 		mov		cx,[si]
 		cmp		cl,'.'
 		je		digitou_ponto
-		cmp		cx,'t'
-		je		digitou_ponto
-		cmp		cx,	0
-		jne		loop_ponto
+		cmp		cx,'$'
+		jne		incrementacao
 		mov 	[si],'.'
 		inc		si
 		mov 	[si],'t'
@@ -239,8 +240,6 @@ Done:
 		inc		si
 		mov     [si], '$'           ; Bota $ como terminação
 digitou_ponto:
-	mov		ax,	si
-	sub		ax, cx	
     ret      
 LeString ENDP
 ;################################################
@@ -252,11 +251,6 @@ insere_arquivo PROC NEAR
 	call	escreve
     lea     SI, suposto_arquivo             ; Load no endereço da string a ser escrita
     call    LeString          				; Le
-	mov		mlinha,5
-	mov		mcolum,10
-	call movecursor
-	lea		dx,suposto_arquivo
-	call	escreve
 	ret
 ENDP
 ;################################################
@@ -575,7 +569,6 @@ conta_palavras proc near
 final_contagem_ponte:
 	jmp	final_contagem
 final_contagem_extra_ponte:
-	inc numlinhas
 	jmp	final_contagem_extra
 			tam5:
 				INC	tam_5
@@ -716,7 +709,6 @@ layout_		proc near	; Desenha o layout bonitinho
 		lea	dx,layout12
 		call escreve
 
-		
 		mov ax,numcaracteres
 		mov convertendo,ax
 		call converte_asci
