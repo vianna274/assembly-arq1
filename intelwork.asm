@@ -170,7 +170,7 @@ final_limpa_linhas:
 	ret	
 ENDP
 ;################################################
-clrscr proc near
+clrscr proc near    ; Função retirada da internet para limpar o visor com menos comando
     mov ax,0003h
     int 10h 
 	
